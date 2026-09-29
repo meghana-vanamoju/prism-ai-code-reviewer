@@ -1,11 +1,25 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CodeEditor } from './components/CodeEditor';
 import { SummaryPanel } from './components/SummaryPanel';
 import { IssuesPanel } from './components/IssuesPanel';
 import { MemoriesPanel } from './components/MemoriesPanel';
-import { reviewCode, submitFeedback } from './services/api';
+import { reviewCode, submitFeedback, healthCheck } from './services/api';
 import type { ReviewResponse, IssueFeedback } from './types/review';
 import './App.css';
+
+type ApiStatus = 'checking' | 'connected' | 'disconnected';
+
+const API_STATUS_LABEL: Record<ApiStatus, string> = {
+  checking: 'API: Checking...',
+  connected: 'API: Connected',
+  disconnected: 'API: Disconnected',
+};
+
+const API_STATUS_DOT: Record<ApiStatus, string> = {
+  checking: '',
+  connected: 'healthy',
+  disconnected: 'unhealthy',
+};
 
 function App() {
   const [review, setReview] = useState<ReviewResponse | null>(null);
@@ -13,6 +27,40 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const [feedbackSuccess, setFeedbackSuccess] = useState<string | null>(null);
+  const [apiStatus, setApiStatus] = useState<ApiStatus>('checking');
+  const [apiDetail, setApiDetail] = useState<string | null>(null);
+
+  // Reports the real outcome of GET /health: connected only when the backend
+  // answers with a healthy status, disconnected when it is unreachable or
+  // reports a non-healthy status.
+  const runHealthCheck = useCallback(async () => {
+    try {
+      const health = await healthCheck();
+      if (health.status === 'healthy') {
+        setApiStatus('connected');
+        setApiDetail(health.service);
+      } else {
+        setApiStatus('disconnected');
+        setApiDetail(`Unexpected status: ${health.status}`);
+      }
+    } catch (err) {
+      setApiStatus('disconnected');
+      setApiDetail(err instanceof Error ? err.message : 'Health check failed');
+    }
+  }, []);
+
+  // Re-runs the check after a failed request, showing the pending state first.
+  const refreshApiHealth = useCallback(() => {
+    setApiStatus('checking');
+    return runHealthCheck();
+  }, [runHealthCheck]);
+
+  useEffect(() => {
+    // Initial state is already "checking", so this only starts the request.
+    // runHealthCheck is async, so no state updates happen synchronously here.
+    // oxlint-disable-next-line react/set-state-in-effect
+    void runHealthCheck();
+  }, [runHealthCheck]);
 
   const handleReview = async (request: { code: string; language?: string; query?: string }) => {
     setIsLoading(true);
@@ -21,8 +69,12 @@ function App() {
     try {
       const result = await reviewCode(request);
       setReview(result);
+      // The request succeeded, so the API is reachable.
+      setApiStatus('connected');
+      setApiDetail(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Review failed');
+      void refreshApiHealth();
     } finally {
       setIsLoading(false);
     }
@@ -42,8 +94,11 @@ function App() {
       setFeedbackSuccess('Feedback stored in Hindsight — future reviews will recall this decision');
       // Clear after 5 seconds
       setTimeout(() => setFeedbackSuccess(null), 5000);
+      setApiStatus('connected');
+      setApiDetail(null);
     } catch (err) {
       setFeedbackError(err instanceof Error ? err.message : 'Failed to store feedback');
+      void refreshApiHealth();
     }
   };
 
@@ -63,9 +118,14 @@ function App() {
           </div>
           <p className="tagline">Persistent Review Intelligence & Standards Memory</p>
         </div>
-        <div className="health-indicator" id="health-indicator">
-          <span className="health-dot"></span>
-          <span>API: Checking...</span>
+        <div
+          className="health-indicator"
+          id="health-indicator"
+          data-status={apiStatus}
+          title={apiDetail ?? undefined}
+        >
+          <span className={`health-dot ${API_STATUS_DOT[apiStatus]}`.trim()}></span>
+          <span>{API_STATUS_LABEL[apiStatus]}</span>
         </div>
       </header>
 
