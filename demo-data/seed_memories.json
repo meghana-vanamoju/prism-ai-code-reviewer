@@ -1,0 +1,51 @@
+[
+  {
+    "content": "Financial calculations must use Decimal rather than floating-point arithmetic.",
+    "context": "Team coding standard for monetary calculations",
+    "metadata": {
+      "source": "team-standard",
+      "category": "financial"
+    }
+  },
+  {
+    "content": "PR #42 introduced a floating-point precision issue in billing calculations. The fix was to use the Decimal type for all monetary values.",
+    "context": "Previous code review finding",
+    "metadata": {
+      "source": "previous-review",
+      "pr_number": "42",
+      "category": "financial"
+    }
+  },
+  {
+    "content": "The team should use the existing money utility for monetary calculations rather than creating duplicate helpers. The utility is located at src/utils/money.py and provides Decimal-based operations.",
+    "context": "Architecture decision",
+    "metadata": {
+      "source": "architecture-decision",
+      "category": "architecture"
+    }
+  },
+  {
+    "content": "Service-layer functions should use the project's standard error handling pattern. All service methods must return Result<T, Error> types instead of throwing exceptions.",
+    "context": "Team coding standard for error handling",
+    "metadata": {
+      "source": "team-standard",
+      "category": "error-handling"
+    }
+  },
+  {
+    "content": "A billing service bug was caused by floating-point precision. The issue occurred when calculating totals for orders with many items, leading to cent-level discrepancies. Fixed by migrating to Decimal-based calculations.",
+    "context": "Previous incident report",
+    "metadata": {
+      "source": "incident",
+      "category": "financial"
+    }
+  },
+  {
+    "content": "Reviewers should prefer existing shared utilities before introducing duplicate implementations. Check src/utils/ and shared/ directories for existing helpers before writing new ones.",
+    "context": "Previous code review guidance",
+    "metadata": {
+      "source": "previous-review",
+      "category": "best-practices"
+    }
+  }
+]
