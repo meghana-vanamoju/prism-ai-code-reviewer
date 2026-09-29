@@ -691,6 +691,16 @@ body {
   font-size: 0.9375rem;
 }
 
+/* Secondary explanation under an empty-state headline. Reuses the existing
+   .empty-state layout and stays visually subordinate to the main message. */
+.empty-state .empty-hint {
+  max-width: 420px;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  opacity: 0.75;
+}
+
 .check-icon {
   width: 48px;
   height: 48px;

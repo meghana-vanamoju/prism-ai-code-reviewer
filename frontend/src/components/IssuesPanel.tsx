@@ -16,7 +16,10 @@ export function IssuesPanel({ issues, onFeedback }: IssuesPanelProps) {
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
             <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
-          <p>No issues found — code looks good!</p>
+          <p>No actionable issues found</p>
+          <p className="empty-hint">
+            PRISM found no issues requiring changes based on the current team standards and remembered decisions.
+          </p>
         </div>
       </div>
     );
