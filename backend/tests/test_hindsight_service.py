@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import Mock, patch, AsyncMock
 
+from app.config import settings
 from app.models.memory import (
     RetainMemoryRequest,
     RecallMemoryRequest,
@@ -9,18 +10,20 @@ from app.models.memory import (
 from app.services.hindsight_service import HindsightService
 
 
+@pytest.fixture
+def mock_client():
+    with patch("app.services.hindsight_service.Hindsight") as mock:
+        yield mock.return_value
+
+
+@pytest.fixture
+def service(mock_client):
+    service = HindsightService()
+    service._client = mock_client
+    return service
+
+
 class TestHindsightService:
-    @pytest.fixture
-    def mock_client(self):
-        with patch("app.services.hindsight_service.Hindsight") as mock:
-            yield mock.return_value
-
-    @pytest.fixture
-    def service(self, mock_client):
-        service = HindsightService()
-        service._client = mock_client
-        return service
-
     @pytest.mark.asyncio
     async def test_retain_memory_calls_hindsight(self, service, mock_client):
         mock_response = Mock()
@@ -157,3 +160,90 @@ class TestHindsightService:
             metadata={"source": "team-standard", "category": "financial"},
             document_id=None,
         )
+
+
+class TestHindsightBankConfiguration:
+    """The bank's retain extraction mode decides whether retention needs the
+    Hindsight server's LLM. These tests pin the behaviour that keeps feedback
+    retention working when that LLM is unreachable."""
+
+    @pytest.fixture
+    def mock_httpx(self):
+        with patch("app.services.hindsight_service.httpx.AsyncClient") as mock:
+            client = AsyncMock()
+            client.__aenter__.return_value = client
+            client.__aexit__.return_value = None
+            mock.return_value = client
+            yield client
+
+    @staticmethod
+    def _response(status_code: int = 200):
+        response = Mock()
+        response.status_code = status_code
+        response.raise_for_status = Mock()
+        return response
+
+    @pytest.mark.asyncio
+    async def test_patches_retain_extraction_mode(self, service, mock_httpx):
+        mock_httpx.patch.return_value = self._response()
+
+        await service.ensure_bank_configuration()
+
+        mock_httpx.patch.assert_awaited_once_with(
+            "http://localhost:8888/v1/default/banks/prism-demo-team/config",
+            json={"updates": {"retain_extraction_mode": "chunks"}},
+        )
+        mock_httpx.put.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_creates_bank_when_missing_then_patches(self, service, mock_httpx):
+        mock_httpx.patch.side_effect = [self._response(404), self._response(200)]
+        mock_httpx.put.return_value = self._response()
+
+        await service.ensure_bank_configuration()
+
+        mock_httpx.put.assert_awaited_once_with(
+            "http://localhost:8888/v1/default/banks/prism-demo-team",
+            json={"bank_id": "prism-demo-team", "retain_extraction_mode": "chunks"},
+        )
+        assert mock_httpx.patch.await_count == 2
+
+    @pytest.mark.asyncio
+    async def test_failure_does_not_raise(self, service, mock_httpx):
+        mock_httpx.patch.side_effect = RuntimeError("connection refused")
+
+        await service.ensure_bank_configuration()
+
+    @pytest.mark.asyncio
+    async def test_http_error_does_not_raise(self, service, mock_httpx):
+        response = self._response()
+        response.raise_for_status.side_effect = RuntimeError("HTTP 500")
+        mock_httpx.patch.return_value = response
+
+        await service.ensure_bank_configuration()
+
+    @pytest.mark.asyncio
+    async def test_no_request_when_mode_is_empty(self, service, mock_httpx):
+        with patch.object(settings, "hindsight_retain_extraction_mode", ""):
+            await service.ensure_bank_configuration()
+
+        mock_httpx.patch.assert_not_called()
+        mock_httpx.put.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_retain_memory_waits_for_persistence(self, service, mock_client):
+        """Retention stays synchronous so recalled memories are never
+        submitted-but-not-yet-stored."""
+        mock_response = Mock()
+        mock_response.success = True
+        mock_response.bank_id = "prism-demo-team"
+        mock_response.items_count = 1
+        mock_response.var_async = False
+        mock_client.aretain = AsyncMock(return_value=mock_response)
+
+        response = await service.retain_memory(
+            RetainMemoryRequest(content="Feedback record", context="Code review feedback")
+        )
+
+        assert response.is_async is False
+        mock_client.aretain_batch.assert_not_called()

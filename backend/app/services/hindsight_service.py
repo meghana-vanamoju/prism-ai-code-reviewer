@@ -1,3 +1,6 @@
+import logging
+
+import httpx
 from hindsight_client import Hindsight
 from hindsight_client_api.models import RetainResponse, RecallResult, ReflectResponse
 
@@ -12,6 +15,8 @@ from app.models.memory import (
     ReflectMemoryResponse,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class HindsightService:
     def __init__(self):
@@ -22,6 +27,49 @@ class HindsightService:
         if self._client is None:
             self._client = Hindsight(base_url=settings.hindsight_base_url)
         return self._client
+
+    async def ensure_bank_configuration(self) -> None:
+        """Align the bank with the configured retain extraction mode.
+
+        Hindsight's default "concise" extraction mode asks the Hindsight
+        server to summarise every chunk into atomic facts using the LLM it was
+        started with. When that server cannot reach its LLM provider the
+        summarisation fails and every retain request fails, even though the
+        database and recall paths are healthy.
+
+        The "chunks" mode stores the submitted content directly, so retention
+        no longer depends on that LLM call while the content stays recallable
+        through the normal semantic recall path.
+        """
+        mode = settings.hindsight_retain_extraction_mode
+        if not mode:
+            return
+
+        base_url = settings.hindsight_base_url.rstrip("/")
+        config_url = f"{base_url}/v1/default/banks/{self._bank_id}/config"
+        bank_url = f"{base_url}/v1/default/banks/{self._bank_id}"
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.patch(
+                    config_url, json={"updates": {"retain_extraction_mode": mode}}
+                )
+                if response.status_code == 404:
+                    await client.put(bank_url, json={"bank_id": self._bank_id, "retain_extraction_mode": mode})
+                    response = await client.patch(
+                        config_url, json={"updates": {"retain_extraction_mode": mode}}
+                    )
+                response.raise_for_status()
+        except Exception as exc:
+            logger.warning(
+                "Could not set retain_extraction_mode=%s on Hindsight bank %s: %s",
+                mode,
+                self._bank_id,
+                exc,
+            )
+            return
+
+        logger.info("Hindsight bank %s retain_extraction_mode set to %s", self._bank_id, mode)
 
     async def retain_memory(self, request: RetainMemoryRequest) -> RetainMemoryResponse:
         client = self._get_client()
