@@ -5,9 +5,10 @@ import { SeverityBadge } from './SeverityBadge';
 interface IssuesPanelProps {
   issues: Issue[];
   onFeedback?: (feedback: IssueFeedback[]) => void;
+  onSelect?: (file: string, line?: number) => void;
 }
 
-export function IssuesPanel({ issues, onFeedback }: IssuesPanelProps) {
+export function IssuesPanel({ issues, onFeedback, onSelect }: IssuesPanelProps) {
   if (issues.length === 0) {
     return (
       <div className="issues-panel empty">
@@ -30,7 +31,7 @@ export function IssuesPanel({ issues, onFeedback }: IssuesPanelProps) {
       <h3>Issues Found ({issues.length})</h3>
       <div className="issues-list">
         {issues.map((issue, index) => (
-          <IssueCard key={`${issue.title}-${index}`} issue={issue} onFeedback={onFeedback} />
+          <IssueCard key={`${issue.title}-${index}`} issue={issue} onFeedback={onFeedback} onSelect={onSelect} />
         ))}
       </div>
     </div>
@@ -40,9 +41,10 @@ export function IssuesPanel({ issues, onFeedback }: IssuesPanelProps) {
 interface IssueCardProps {
   issue: Issue;
   onFeedback?: (feedback: IssueFeedback[]) => void;
+  onSelect?: (file: string, line?: number) => void;
 }
 
-function IssueCard({ issue, onFeedback }: IssueCardProps) {
+function IssueCard({ issue, onFeedback, onSelect }: IssueCardProps) {
   const [showFeedback, setShowFeedback] = useState(false);
   const [decision, setDecision] = useState<IssueDecision | null>(null);
   const [reason, setReason] = useState('');
@@ -61,12 +63,26 @@ function IssueCard({ issue, onFeedback }: IssueCardProps) {
     setReason('');
   };
 
+  const location = issue.file ? (
+    <button
+      type="button"
+      className="issue-location"
+      onClick={() => onSelect?.(issue.file as string, issue.line)}
+      disabled={!onSelect}
+      title="Jump to location"
+    >
+      <span className="loc-file">{issue.file}</span>
+      {typeof issue.line === 'number' && <span className="loc-line">:{issue.line}</span>}
+    </button>
+  ) : null;
+
   if (!onFeedback) {
     return (
       <div className="issue-card">
         <div className="issue-header">
           <SeverityBadge severity={issue.severity} />
           <h4>{issue.title}</h4>
+          {location}
         </div>
         <p className="issue-description">{issue.description}</p>
         <p className="issue-recommendation"><strong>Recommendation:</strong> {issue.recommendation}</p>
@@ -82,6 +98,7 @@ function IssueCard({ issue, onFeedback }: IssueCardProps) {
       <div className="issue-header">
         <SeverityBadge severity={issue.severity} />
         <h4>{issue.title}</h4>
+        {location}
       </div>
       <p className="issue-description">{issue.description}</p>
       <p className="issue-recommendation"><strong>Recommendation:</strong> {issue.recommendation}</p>

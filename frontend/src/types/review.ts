@@ -6,6 +6,9 @@ export interface Issue {
   description: string;
   recommendation: string;
   memory_reference?: string;
+  file?: string;
+  line?: number;
+  end_line?: number;
 }
 
 export interface MemoryUsed {
@@ -14,6 +17,27 @@ export interface MemoryUsed {
   type?: string;
   context?: string;
   metadata?: Record<string, unknown>;
+}
+
+export type RequirementStatus = 'implemented' | 'partial' | 'missing';
+
+export interface RequirementItem {
+  id: string;
+  title: string;
+  kind: string;
+  status: RequirementStatus;
+  evidence: string[];
+  gaps: string;
+  notes?: string | null;
+}
+
+export interface RequirementsReport {
+  items: RequirementItem[];
+  summary: string;
+  implemented: number;
+  partial: number;
+  missing: number;
+  coverage_pct: number;
 }
 
 export interface ReviewRequest {

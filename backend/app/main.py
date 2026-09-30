@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.api import memory, review
+from app.api import jobs, memory, review
 from app.services.hindsight_service import hindsight_service
 
 
@@ -32,6 +32,7 @@ app.add_middleware(
 
 app.include_router(memory.router)
 app.include_router(review.router)
+app.include_router(jobs.router)
 
 
 @app.get("/health")

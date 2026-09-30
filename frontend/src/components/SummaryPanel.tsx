@@ -1,7 +1,17 @@
-import type { ReviewResponse } from '../types/review';
+import type { Issue, MemoryUsed } from '../types/review';
+
+// Structural subset shared by the legacy single-review response and the new
+// job-based ReviewResult, so one panel serves both shapes.
+interface SummaryReview {
+  summary: string;
+  issues: Issue[];
+  suggestions: string[];
+  memories_used: MemoryUsed[];
+  model_used: string;
+}
 
 interface SummaryPanelProps {
-  review: ReviewResponse;
+  review: SummaryReview;
 }
 
 export function SummaryPanel({ review }: SummaryPanelProps) {
@@ -14,7 +24,10 @@ export function SummaryPanel({ review }: SummaryPanelProps) {
 
   return (
     <div className="summary-panel">
-      <h3>Review Summary</h3>
+      <div className="panel-head">
+        <span className="panel-eyebrow">Overview</span>
+        <h3>Review Summary</h3>
+      </div>
       <p className="summary-text">{review.summary}</p>
 
       {totalIssues > 0 && (

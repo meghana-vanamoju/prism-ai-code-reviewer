@@ -1,14 +1,170 @@
+/* ------------------------------------------------------------------
+   PRISM design tokens.
+
+   Dark is the default theme (values on :root). A light theme is opt-in
+   via <html data-theme="light">, persisted in localStorage by App.tsx.
+   Components must only use these variables — never hard-coded colors —
+   so both themes stay consistent.
+   ------------------------------------------------------------------ */
+
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+    'Helvetica Neue', sans-serif;
+  --font-mono: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono',
+    monospace;
+
+  font-family: var(--font-sans);
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: light;
-  color: #1a1a2e;
-  background-color: #f8f9fa;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Dark theme (default) */
+  color-scheme: dark;
+  --bg: #0a0c13;
+  --bg-elevated: #141827;
+  --bg-panel: #171c2e;
+  --bg-inset: #0f1220;
+  --bg-hover: #1e2438;
+  --bg-input: #0e1120;
+  --border: #262d45;
+  --border-strong: #384160;
+  --text: #e7eaf3;
+  --text-muted: #9aa3bd;
+  --text-faint: #6b7492;
+  --accent: #818cf8;
+  --accent-strong: #6366f1;
+  --accent-hover: #a5b4fc;
+  --accent-soft: rgba(99, 102, 241, 0.14);
+  --accent-border: rgba(129, 140, 248, 0.45);
+  --on-accent: #0b0d14;
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+  --ok: #4ade80;
+  --ok-soft: rgba(74, 222, 128, 0.12);
+  --warn: #fbbf24;
+  --warn-soft: rgba(251, 191, 36, 0.12);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 26px 70px -28px rgba(0, 0, 0, 0.85);
+  --scroll-track: #0a0c13;
+  --scroll-thumb: #333c5c;
+  --scroll-thumb-hover: #475175;
+  --selection-bg: #6366f1;
+
+  /* Shape */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-fast: 0.14s;
+  --dur: 0.22s;
+  --dur-slow: 0.45s;
+
+  /* Brand surfaces */
+  --grad-accent: linear-gradient(135deg, #6366f1 0%, #8b5cf6 52%, #22d3ee 100%);
+  --grad-accent-soft: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.22),
+    rgba(139, 92, 246, 0.14) 55%,
+    rgba(34, 211, 238, 0.12)
+  );
+  --glow-primary: rgba(99, 102, 241, 0.4);
+  --glow-secondary: rgba(34, 211, 238, 0.22);
+  --surface-sheen: rgba(255, 255, 255, 0.04);
+
+  /* Severity palette (identical hues both themes, tuned surfaces below) */
+  --sev-critical: #ef4444;
+  --sev-high: #f97316;
+  --sev-medium: #f59e0b;
+  --sev-low: #84cc16;
+  --sev-suggestion: #60a5fa;
+
+  /* Code / diff surfaces */
+  --code-bg: #0a0c15;
+  --code-text: #d5dbf0;
+  --code-gutter: #12162a;
+  --code-gutter-text: #5b6484;
+  --code-current-line: rgba(99, 102, 241, 0.08);
+  --diff-add-bg: rgba(74, 222, 128, 0.1);
+  --diff-add-gutter: rgba(74, 222, 128, 0.22);
+  --diff-add-text: #a7f3d0;
+  --diff-del-bg: rgba(248, 113, 113, 0.1);
+  --diff-del-gutter: rgba(248, 113, 113, 0.22);
+  --diff-del-text: #fecaca;
+  --diff-hunk-bg: rgba(99, 102, 241, 0.07);
+  --diff-hunk-text: #8b95c7;
+}
+
+html[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f4f6fb;
+  --bg-elevated: #ffffff;
+  --bg-panel: #ffffff;
+  --bg-inset: #f0f2f8;
+  --bg-hover: #eef1f8;
+  --bg-input: #ffffff;
+  --border: #dfe3ee;
+  --border-strong: #c3cade;
+  --text: #171a26;
+  --text-muted: #5b6379;
+  --text-faint: #8a91a6;
+  --accent: #4f46e5;
+  --accent-strong: #4338ca;
+  --accent-hover: #3730a3;
+  --accent-soft: rgba(79, 70, 229, 0.09);
+  --accent-border: rgba(79, 70, 229, 0.4);
+  --on-accent: #ffffff;
+  --danger: #dc2626;
+  --danger-soft: rgba(220, 38, 38, 0.08);
+  --ok: #16a34a;
+  --ok-soft: rgba(22, 163, 74, 0.1);
+  --warn: #d97706;
+  --warn-soft: rgba(217, 119, 6, 0.1);
+  --shadow-sm: 0 1px 2px rgba(23, 26, 38, 0.06);
+  --shadow-md: 0 8px 28px rgba(23, 26, 38, 0.1);
+  --shadow-lg: 0 26px 60px -30px rgba(23, 26, 38, 0.35);
+  --scroll-track: #eef0f6;
+  --scroll-thumb: #c6ccdd;
+  --scroll-thumb-hover: #a9b1c7;
+  --selection-bg: #4f46e5;
+
+  --grad-accent: linear-gradient(135deg, #4338ca 0%, #6d28d9 52%, #0891b2 100%);
+  --grad-accent-soft: linear-gradient(
+    135deg,
+    rgba(79, 70, 229, 0.14),
+    rgba(109, 40, 217, 0.09) 55%,
+    rgba(8, 145, 178, 0.08)
+  );
+  --glow-primary: rgba(79, 70, 229, 0.25);
+  --glow-secondary: rgba(8, 145, 178, 0.16);
+  --surface-sheen: rgba(255, 255, 255, 0.6);
+
+  --sev-critical: #dc2626;
+  --sev-high: #ea580c;
+  --sev-medium: #d97706;
+  --sev-low: #65a30d;
+  --sev-suggestion: #2563eb;
+
+  --code-bg: #fbfcfe;
+  --code-text: #1f2433;
+  --code-gutter: #f1f3f9;
+  --code-gutter-text: #98a0b8;
+  --code-current-line: rgba(79, 70, 229, 0.06);
+  --diff-add-bg: rgba(22, 163, 74, 0.09);
+  --diff-add-gutter: rgba(22, 163, 74, 0.2);
+  --diff-add-text: #14532d;
+  --diff-del-bg: rgba(220, 38, 38, 0.08);
+  --diff-del-gutter: rgba(220, 38, 38, 0.18);
+  --diff-del-text: #7f1d1d;
+  --diff-hunk-bg: rgba(79, 70, 229, 0.06);
+  --diff-hunk-text: #6b72a8;
 }
 
 #root {
@@ -19,9 +175,15 @@
   box-sizing: border-box;
 }
 
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
 ::selection {
-  background: #4f46e5;
-  color: white;
+  background: var(--selection-bg);
+  color: #ffffff;
 }
 
 ::-webkit-scrollbar {
@@ -30,14 +192,30 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--scroll-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--scroll-thumb);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--scroll-thumb-hover);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

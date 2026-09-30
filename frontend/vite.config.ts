@@ -8,7 +8,8 @@ import { defineConfig } from 'vitest/config'
 // (127.0.0.1 vs localhost, a different dev port, or the preview port).
 // Proxying /health and /api through the dev/preview server keeps the browser on a
 // single origin, so those requests are same-origin and never hit CORS.
-const backendTarget = process.env.VITE_API_PROXY_TARGET || 'http://localhost:8000'
+// https://vite.dev/config/
+const backendTarget = process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8000'
 
 const proxy = {
   '/health': { target: backendTarget, changeOrigin: true },

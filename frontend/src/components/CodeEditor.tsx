@@ -6,9 +6,18 @@ interface CodeEditorProps {
   onSubmit: (request: ReviewRequest) => void;
   isLoading: boolean;
   defaultCode?: string;
+  /** Extra gate (e.g. requirements text must be present before submitting). */
+  disabled?: boolean;
+  submitLabel?: string;
 }
 
-export function CodeEditor({ onSubmit, isLoading, defaultCode }: CodeEditorProps) {
+export function CodeEditor({
+  onSubmit,
+  isLoading,
+  defaultCode,
+  disabled,
+  submitLabel,
+}: CodeEditorProps) {
   const [code, setCode] = useState(defaultCode || '');
   const [language, setLanguage] = useState('javascript');
   const [query, setQuery] = useState('');
@@ -61,8 +70,12 @@ export function CodeEditor({ onSubmit, isLoading, defaultCode }: CodeEditorProps
             placeholder="e.g., financial calculation issues, security concerns, performance"
           />
         </div>
-        <button type="submit" className="review-button" disabled={isLoading || !code.trim()}>
-          {isLoading ? 'Reviewing...' : 'Review Code'}
+        <button
+          type="submit"
+          className="review-button"
+          disabled={isLoading || Boolean(disabled) || !code.trim()}
+        >
+          {isLoading ? 'Reviewing...' : (submitLabel ?? 'Review Code')}
         </button>
       </div>
     </form>

@@ -33,11 +33,22 @@ class Settings(BaseSettings):
 
     groq_api_key: str = ""
     groq_model: str = "openai/gpt-oss-20b"
+    # Groq free tier enforces an org-wide tokens-per-minute budget; the client
+    # paces requests so multi-file reviews don't burn the budget on 429s.
+    groq_tpm_limit: int = 8000
 
     api_host: str = "0.0.0.0"
     api_port: int = 8000
 
     cors_origins: str = "http://localhost:5173,http://localhost:3000"
+
+    review_max_files: int = 40
+    review_max_file_bytes: int = 200_000
+    review_max_total_bytes: int = 2_000_000
+    review_concurrency: int = 3
+    review_max_memories: int = 5
+    git_clone_timeout: int = 90
+    job_ttl_seconds: int = 3600
 
     @property
     def cors_origins_list(self) -> List[str]:

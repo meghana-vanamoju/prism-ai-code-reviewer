@@ -17,6 +17,34 @@ class Issue(BaseModel):
     description: str
     recommendation: str
     memory_reference: Optional[str] = None
+    file: Optional[str] = None
+    line: Optional[int] = None
+    end_line: Optional[int] = None
+
+
+class RequirementStatus(str, Enum):
+    IMPLEMENTED = "implemented"
+    PARTIAL = "partial"
+    MISSING = "missing"
+
+
+class RequirementItem(BaseModel):
+    id: str
+    title: str
+    kind: str = "other"
+    status: RequirementStatus = RequirementStatus.MISSING
+    evidence: List[str] = Field(default_factory=list)
+    gaps: str = ""
+    notes: Optional[str] = None
+
+
+class RequirementsReport(BaseModel):
+    items: List[RequirementItem] = Field(default_factory=list)
+    summary: str = ""
+    implemented: int = 0
+    partial: int = 0
+    missing: int = 0
+    coverage_pct: int = 0
 
 
 class MemoryUsed(BaseModel):
@@ -42,6 +70,14 @@ class ReviewResponse(BaseModel):
     suggestions: List[str]
     memories_used: List[MemoryUsed]
     model_used: str
+
+
+class FileReview(BaseModel):
+    """Result of reviewing a single file (or a single diff)."""
+
+    summary: str = ""
+    issues: List[Issue] = Field(default_factory=list)
+    suggestions: List[str] = Field(default_factory=list)
 
 
 class IssueDecision(str, Enum):

@@ -42,7 +42,8 @@ describe('API status indicator', () => {
       expect(screen.getByText('API: Connected')).toBeInTheDocument();
     });
     // The indicator must reflect the real response, not a hard-coded string.
-    expect(screen.getByRole('button', { name: /review/i })).toBeInTheDocument();
+    // The landing picker offers several "Review …" actions.
+    expect(screen.getAllByRole('button', { name: /review/i }).length).toBeGreaterThan(0);
   });
 
   it('requests the health endpoint on mount', async () => {
